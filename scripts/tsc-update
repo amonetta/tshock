@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+latestRelease=$(curl -sS -X GET https://api.github.com/repos/Pryaxis/TShock/releases/latest);
+latestVersion=$(echo $latestRelease | jq -r '.tag_name')
+actualVersion=$(cat /opt/tshock/tshock.version)
+echo "TShock update: ${actualVersion} => ${latestVersion}"
+update=true
+if [[ "$actualVersion" == "$latestVersion" ]]; then
+    read -p "Target version is same actual. Do you want to continue update? (y/N) " -n 1 confirmation
+    case "${confirmation}" in
+        y|Y ) update=true;;
+        n|N ) update=false;;
+        *) update=false;;
+    esac
+    echo "" ;
+fi
+if $update ; then
+    download_url=$(echo $latestRelease | jq -r '.assets[0].browser_download_url') && \
+    curl -L "${download_url}" -o "/tmp/tshock_${latestVersion}.zip" --progress-bar && \
+    unzip -o "/tmp/tshock_${latestVersion}.zip" -d /opt/tshock && \
+    rm "/tmp/tshock_${latestVersion}.zip" && \
+    echo "${latestVersion}" > ${TSHOCK_HOME}/tshock.version && \
+    echo "TShock version: ${latestVersion}"
+else
+    echo "No version updated" ;
+fi

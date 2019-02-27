@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+case $1 in
+    config ) shift
+          tsc-config $@
+          exit
+          ;;
+    update ) shift
+             tsc-update $@
+             exit
+             ;;
+    health ) shift
+             tsc-health $@
+             exit
+             ;;
+    * ) echo "Unkown subcommand tscommand-$1"
+        exit 1
+        ;;
+esac

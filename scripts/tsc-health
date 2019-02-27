@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+PID=$(cat ${TSHOCK_HOME}/tshock/tshock.pid 2> /dev/null)
+if [ -n "$PID" -a -e /proc/$PID ]; then
+    echo "TShock running pid ${PID}."
+    exit
+else
+    echo "TShock is not running."
+    exit 1
+fi

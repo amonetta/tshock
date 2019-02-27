@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+field=
+value=
+set=false
+
+case $1 in
+    "set" ) shift
+          if [ $# -ne 2 ]; then
+              echo "Invalid number of arguments."
+              exit 1
+          fi
+          field=$1
+          value=$2
+          set=true
+          ;;
+    "get" ) shift
+          if [ $# -ne 1 ]; then
+              echo "Invalid number of arguments."
+              exit 1
+          fi
+          field=$1
+          set=false
+          ;;
+    * ) echo "Unkown argument $1"
+        exit 1
+        ;;
+esac
+
+if [[ -z $(cat ${TSHOCK_HOME}/tshock/config.json | jq 'select(.| has($sfield))' --arg sfield ${field}) ]]; then
+  echo "Field ${field} does not exists."
+  exit 1
+fi
+if $set; then
+  cat ${TSHOCK_HOME}/tshock/config.json | jq ".${field}=${value}" > /tmp/config.json && \
+  mv /tmp/config.json ${TSHOCK_HOME}/tshock/config.json ;
+else
+  value=$(cat ${TSHOCK_HOME}/tshock/config.json | jq -r ".${field}") ;
+fi
+
+echo "${field}:${value}"
