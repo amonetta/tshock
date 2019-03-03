@@ -5,6 +5,10 @@ case $1 in
           tsc-config $@
           exit
           ;;
+    ssc ) shift
+          tsc-ssc $@
+          exit
+          ;;
     update ) shift
              tsc-update $@
              exit
@@ -13,6 +17,10 @@ case $1 in
              tsc-health $@
              exit
              ;;
+    version ) shift
+              tsc-version $@
+              exit
+              ;;
     * ) echo "Unkown subcommand tscommand-$1"
         exit 1
         ;;

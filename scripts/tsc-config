@@ -2,7 +2,38 @@
 
 field=
 value=
-set=false
+
+function set() {
+    valueType=$(jq --arg field "$field" '.[$field]|type' < ${TSHOCK_HOME}/tshock/config.json)
+    if [[ "$valueType" == '"string"' ]]; then
+        jq --arg field "$field" --arg value "$value" '.[$field]=$value' < ${TSHOCK_HOME}/tshock/config.json > /tmp/config.json && \
+        mv /tmp/config.json ${TSHOCK_HOME}/tshock/config.json;
+    else
+        jq --arg field "$field" --argjson value "$value" '.[$field]=$value' < ${TSHOCK_HOME}/tshock/config.json > /tmp/config.json && \
+        mv /tmp/config.json ${TSHOCK_HOME}/tshock/config.json;
+    fi
+    echo "${field}:${value}"
+}
+
+function get() {
+    value=$(jq -r ".${field}" < ${TSHOCK_HOME}/tshock/config.json) ;
+    echo "${field}:${value}"
+}
+
+function validate_field() {
+    if [[ -z $(jq --arg sfield ${field} 'select(.| has($sfield))' < ${TSHOCK_HOME}/tshock/config.json) ]]; then
+        echo "Field ${field} does not exists."
+        exit 1
+    fi
+}
+
+function list() {
+    jq -r 'keys[]' < ${TSHOCK_HOME}/tshock/config.json
+}
+
+function find() {
+    list | grep $1
+}
 
 case $1 in
     "set" ) shift
@@ -12,7 +43,7 @@ case $1 in
           fi
           field=$1
           value=$2
-          set=true
+          set
           ;;
     "get" ) shift
           if [ $# -ne 1 ]; then
@@ -20,22 +51,19 @@ case $1 in
               exit 1
           fi
           field=$1
-          set=false
+          get
           ;;
+    "ls" ) shift
+          list
+          ;;
+    "grep" ) shift
+           if [ $# -ne 1 ]; then
+              echo "Invalid number of arguments."
+              exit 1
+           fi
+           find $@
+           ;;
     * ) echo "Unkown argument $1"
         exit 1
         ;;
 esac
-
-if [[ -z $(cat ${TSHOCK_HOME}/tshock/config.json | jq 'select(.| has($sfield))' --arg sfield ${field}) ]]; then
-  echo "Field ${field} does not exists."
-  exit 1
-fi
-if $set; then
-  cat ${TSHOCK_HOME}/tshock/config.json | jq ".${field}=${value}" > /tmp/config.json && \
-  mv /tmp/config.json ${TSHOCK_HOME}/tshock/config.json ;
-else
-  value=$(cat ${TSHOCK_HOME}/tshock/config.json | jq -r ".${field}") ;
-fi
-
-echo "${field}:${value}"

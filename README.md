@@ -1,4 +1,4 @@
-# Dockered TShock
+# Dockered tShock
 
 TShock server wrapper for terraria
 
@@ -19,6 +19,8 @@ and have permissions to run docker command.
 
 ## How-to
 
+### Simple startup
+
 Just run simple image and free play
 
 ```
@@ -26,7 +28,7 @@ $ docker run -d \
     -p 7777:7777 -p 7878:7878 \
     --name tshock \
     --network bridge \
-    amonetta/tshock:v4.3.25 
+    amonetta/tshock:latest
 ```
 
 Just run simple image with server-side-characters enabled
@@ -48,6 +50,21 @@ Copy the pin and then type  `ctrl + p, ctrl + q`
 IMPORTANT: Do not leave container by closing windows or `ctrl + c` this will
 cause that your server finish.
 
+### Local volumes
+
+To storage at your host machine your word, you need to start container with `-v` or `--volume` like this:
+
+```
+$ docker run -d \
+    -p 7777:7777 -p 7878:7878 \
+    --name tshock \
+    --network bridge \
+    --volume $HOME/tschok/Terraria/Words:/opt/tshock/Terraria/Worlds \
+    amonetta/tshock:latest
+```
+
+For custom volume configuration, you can read docker documentation about volume and mount [here](https://docs.docker.com/storage/volumes)
+
 ## Server control
 
 ### Stop/Restart
@@ -66,6 +83,33 @@ and will be able to restart at any time using
 ``$ docker commit -p tshock``
 
 `p` : is optional param, pause container during image creation.
+
+If you want to export your recently created image to other machine, run:
+
+``docker save -o <path for generated tar file> <image name>``
+
+then save the `.tar` file generated and run on target machine:
+
+``docker load -i <path to image tar file>``
+
+Full example
+
+```
+$ docker commit -p tshock
+sha256:18f834a8e6c997e22d3348f0883d9e718232f52f4175d5f1f62bb35d79c43e74
+$ docker save -o ~/tshock/18f834a8e6c9.tar 18f834a8e6c9
+```
+
+Save `18f834a8e6c9.tar` to other machine and run: 
+
+```
+$ docker load -i ~/tshock/18f834a8e6c9.tar
+$ docker run -d \
+      -p 7777:7777 -p 7878:7878 \
+      --name tshock \
+      --network bridge \
+      18f834a8e6c9
+```
 
 ## Server configuration
 
@@ -90,13 +134,13 @@ InvasionMultiplier:1
 ```
 
 ```
-$ tsc config get InvasionMultiplier 2
+$ tsc config set InvasionMultiplier 2
 InvasionMultiplier:2
 ```
 
 You can run this command outside container like this:
 
-`$ docker exec -it tshock tsc update
+`$ docker exec -it tshock tsc update`
 
 ### Custom configurations
 

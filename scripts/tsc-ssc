@@ -1,0 +1,210 @@
+#!/usr/bin/env bash
+
+netID=
+prefix=0
+stack=1
+actual=
+actualIndex=
+field=
+value=
+
+function findItem() {
+    actualIndex=$(jq '.' < ${TSHOCK_HOME}/tshock/sscconfig.json | jq '.StartingInventory[].netID' | jq -s --argjson netID "$netID" 'index($netID) | select(type == "number")')
+    if [ -n "$actualIndex" ]; then
+        actual=$(jq '.' < ${TSHOCK_HOME}/tshock/sscconfig.json | jq --argjson actualIndex "$actualIndex" '.StartingInventory[$actualIndex]')
+    fi
+}
+
+function getItem() {
+    actual=$(jq --argjson netID "$netID" '.StartingInventory[]|select(.netID == $netID)' < ${TSHOCK_HOME}/tshock/sscconfig.json)
+    if [ -n "$actual" ]; then
+        echo "$actual" | jq -r '.'
+    else
+        echo "Not found."
+    fi
+}
+
+function addItem() {
+    jq '.' < ${TSHOCK_HOME}/tshock/sscconfig.json | jq --argjson netID "$netID" --argjson prefix "$prefix" --argjson stack "$stack" '.StartingInventory += [{"netID":$netID,"prefix":$prefix, "stack":$stack}]' > /tmp/sscconfig.json
+}
+
+function removeItem() {
+    jq '.' < ${TSHOCK_HOME}/tshock/sscconfig.json | jq --argjson actualIndex "$actualIndex" 'del(.StartingInventory[$actualIndex])' > /tmp/sscconfig.json
+}
+
+function updateItem() {
+    jq '.' < ${TSHOCK_HOME}/tshock/sscconfig.json | jq --argjson actualIndex "$actualIndex" --argjson netID "$netID" --argjson prefix "$prefix" --argjson stack "$stack" '.StartingInventory[$actualIndex] = {"netID":$netID,"prefix":$prefix, "stack":$stack}' > /tmp/sscconfig.json
+}
+
+function listItems() {
+    jq '.StartingInventory[]' < ${TSHOCK_HOME}/tshock/sscconfig.json
+}
+
+function set() {
+    field="$1"
+    value="$2"
+    validate_field
+    valueType=$(jq --arg field "$field" '.[$field]|type' < ${TSHOCK_HOME}/tshock/sscconfig.json)
+    if [[ "$valueType" == '"string"' ]]; then
+        jq --arg field "$field" --arg value "$value" '.[$field]=$value' < ${TSHOCK_HOME}/tshock/sscconfig.json > /tmp/sscconfig.json && \
+        mv /tmp/sscconfig.json ${TSHOCK_HOME}/tshock/sscconfig.json;
+    else
+        jq --arg field "$field" --argjson value "$value" '.[$field]=$value' < ${TSHOCK_HOME}/tshock/sscconfig.json > /tmp/sscconfig.json && \
+        mv /tmp/sscconfig.json ${TSHOCK_HOME}/tshock/sscconfig.json;
+    fi
+}
+
+function get() {
+    field="$1"
+    validate_field
+    value=$(jq -r --arg field "$field" '.[$field]' < ${TSHOCK_HOME}/tshock/sscconfig.json) ;
+    echo "${value}"
+}
+
+function validate_field() {
+    if [[ "$field" == "StartingInventory" ]]; then
+        echo "Can not get or set StartingInventory, use *-items options"
+        exit 1
+    fi
+    if [[ -z $(jq --arg sfield ${field} 'select(.| has($sfield))' < ${TSHOCK_HOME}/tshock/sscconfig.json ) ]]; then
+        echo "Field ${field} does not exists"
+        exit 1
+    fi
+}
+
+function list() {
+    jq -r 'keys[]' < ${TSHOCK_HOME}/tshock/sscconfig.json
+}
+
+function find() {
+    list | grep $1
+}
+
+function setItem() {
+    while [ $# -gt 0 ]; do
+        case $1 in
+            "-id"|"--netID" )
+                if [ $# -lt 2 ]; then
+                    echo "Invalid number of arguments."
+                    exit 1
+                fi
+                shift
+                netID=$1
+                ;;
+            "-p"|"--prefix" )
+                if [ $# -lt 2 ]; then
+                    echo "Invalid number of arguments."
+                    exit 1
+                fi
+                shift
+                prefix=$1
+                ;;
+            "-s"|"--stack" )
+                if [ $# -lt 2 ]; then
+                    echo "Invalid number of arguments."
+                    exit 1
+                fi
+                shift
+                stack=$1
+                ;;
+            * ) echo "Unkown argument $1"
+                exit 1
+                ;;
+        esac
+        shift
+    done
+    echo "netID: $netID, prefix:$prefix, stack:$stack"
+    if [ -z "$netID" ]; then
+        echo "Invalid netID."
+        exit 1
+    fi
+    if [ "$stack" -lt 0 ]; then
+        echo "Invalid stack."
+        exit 1
+    fi
+    findItem
+    if [ "$stack" -bt 0 ]; then
+        if [ -z "$actualIndex" ]; then
+            addItem
+        else
+            updateItem
+        fi
+    else
+        if [ -z "$actualIndex" ]; then
+            echo "Not found."
+        else
+            removeItem
+        fi
+    fi
+    mv /tmp/sscconfig.json  ${TSHOCK_HOME}/tshock/sscconfig.json
+}
+
+case $1 in
+    "enable" ) shift
+          if [ $# -ne 0 ]; then
+              echo "Invalid number of arguments."
+              exit 1
+          fi
+          set Enable true
+          ;;
+    "disable" ) shift
+          if [ $# -ne 0 ]; then
+              echo "Invalid number of arguments."
+              exit 1
+          fi
+          set Enable false
+          ;;
+    "get" ) shift
+          if [ $# -ne 1 ]; then
+              echo "Invalid number of arguments."
+              exit 1
+          fi
+          get $@
+          ;;
+    "set" ) shift
+          if [ $# -lt 2 ]; then
+              echo "Invalid number of arguments."
+              exit 1
+          fi
+          set $@
+          ;;
+    "ls" ) shift
+          if [ $# -ne 0 ]; then
+              echo "Invalid number of arguments."
+              exit 1
+          fi
+          list $@
+          ;;
+    "grep" ) shift
+          if [ $# -ne 1 ]; then
+              echo "Invalid number of arguments."
+              exit 1
+          fi
+          find $@
+          ;;
+    "get-item" ) shift
+          if [ $# -ne 1 ]; then
+              echo "Invalid number of arguments."
+              exit 1
+          fi
+          netID=$1
+          getItem
+          ;;
+    "set-item" ) shift
+          if [ $# -lt 2 ]; then
+              echo "Invalid number of arguments."
+              exit 1
+          fi
+          setItem $@
+          ;;
+    "ls-item" ) shift
+          if [ $# -ne 0 ]; then
+              echo "Invalid number of arguments."
+              exit 1
+          fi
+          listItems
+          ;;
+    * ) echo "Unkown argument $1"
+        exit 1
+        ;;
+esac
