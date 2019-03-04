@@ -1,5 +1,26 @@
 #!/usr/bin/env bash
 
+usage="It sets SSC tShock config
+
+Usage: $(basename "$0") <action> [<option>]
+
+Actions
+    enable              : Enable ssc on this server
+    disable             : Disable ssc on this server
+    get <prop>          : Get <prop> value for property
+    set <prop> <value>  : Set to property <prop> given <prop>
+    grep <regex>        : Find property matching regex
+    ls                  : List all property names
+    get-item [<option>] : Get starting inventory item config (if present)
+    set-item [<option>] : Set starting inventory item (update, add, remove)
+    ls-item [<option>]  : List all starting inventory items
+
+Options
+    -id,--netID <number> : Item id
+    -p,--prefix <number> : Item prefix
+    -s,--stack <number>  : Item stack
+    -h,--help            : Show this help"
+
 netID=
 prefix=0
 stack=1
@@ -145,14 +166,14 @@ case $1 in
               echo "Invalid number of arguments."
               exit 1
           fi
-          set Enable true
+          set Enabled true
           ;;
     "disable" ) shift
           if [ $# -ne 0 ]; then
               echo "Invalid number of arguments."
               exit 1
           fi
-          set Enable false
+          set Enabled false
           ;;
     "get" ) shift
           if [ $# -ne 1 ]; then
@@ -204,7 +225,11 @@ case $1 in
           fi
           listItems
           ;;
-    * ) echo "Unkown argument $1"
+    "-h"|"--help" ) shift
+          echo "$usage"
+          ;;
+    * ) echo "$usage"
+        echo "Unkown argument $1"
         exit 1
         ;;
 esac

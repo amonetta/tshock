@@ -1,5 +1,18 @@
 #!/usr/bin/env bash
 
+usage="It sets main tShock config.
+
+Usage: $(basename "$0") <action> [<option>]
+
+Actions
+    get <prop>          : Get <prop> value for property
+    set <prop> <value>  : Set to property <prop> given <prop>
+    grep <regex>        : Find property matching regex
+    ls                  : List all property names
+
+Options
+    -h,--help            : Show this help"
+
 field=
 value=
 

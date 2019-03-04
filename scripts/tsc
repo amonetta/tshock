@@ -1,5 +1,19 @@
 #!/usr/bin/env bash
 
+usage="Set of commands to control tShock config.
+
+Usage: $(basename "$0") <subcommand> [<option>]
+
+Subcommnads
+    config  : Gets / Updates tShock server main config
+    ssc     : Gets / Updates tShock server SSC config
+    health  : Check server health
+    update  : Update tShock version
+    version : Gets tSchock actual version
+
+Options
+    -h,--help            : Show this help"
+
 case $1 in
     config ) shift
           tsc-config $@
@@ -21,6 +35,10 @@ case $1 in
               tsc-version $@
               exit
               ;;
+    "-h"|"--help" ) shift
+            echo "$usage"
+            exit
+            ;;
     * ) echo "Unkown subcommand tscommand-$1"
         exit 1
         ;;

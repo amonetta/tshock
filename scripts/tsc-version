@@ -1,2 +1,22 @@
 #!/usr/bin/env bash
-cat /opt/tshock/tshock.version
+usage="Gets tShock actual version
+
+Usage: $(basename "$0")"
+
+function getVersion() {
+    cat /opt/tshock/tshock.version
+}
+
+if [ $# -eq 0 ]; then
+    getVersion
+else
+    case $1 in
+        "-h"|"--help" ) shift
+              if [ $# -ne 0 ]; then
+                  echo "Invalid number of arguments."
+                  exit 1
+              fi
+              echo "$usage"
+              ;;
+    esac
+fi

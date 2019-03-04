@@ -117,9 +117,15 @@ $ docker run -d \
 
 `tsc` (tshock command) is a self develop bundle of commands to simplify tshock server configuration and management.
 
+`tsc config`: Get/Set tShock server main config.
+
+`tsc ssc`: Get/Set tShock server SSC config.
+
 `tsc health`: Show if tshock is running.
 
 `tsc update`: Update tshock server to last version.
+
+`tsc version`: Gets tShock actual version.
 
     WARNING: This could harm your plugin's installations. It's highly recommended to create a backup and check plugins compatibility before update. 
 
@@ -137,6 +143,8 @@ InvasionMultiplier:1
 $ tsc config set InvasionMultiplier 2
 InvasionMultiplier:2
 ```
+
+Use also `-h` or `--help` option to get further information about running commands.
 
 You can run this command outside container like this:
 

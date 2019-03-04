@@ -1,25 +1,64 @@
 #!/usr/bin/env bash
-latestRelease=$(curl -sS -X GET https://api.github.com/repos/Pryaxis/TShock/releases/latest);
-latestVersion=$(echo $latestRelease | jq -r '.tag_name')
-actualVersion=$(cat /opt/tshock/tshock.version)
-echo "TShock update: ${actualVersion} => ${latestVersion}"
-update=true
-if [[ "$actualVersion" == "$latestVersion" ]]; then
-    read -p "Target version is same actual. Do you want to continue update? (y/N) " -n 1 confirmation
-    case "${confirmation}" in
-        y|Y ) update=true;;
-        n|N ) update=false;;
-        *) update=false;;
+usage="Update tShock server version
+
+Usage: $(basename "$0") [-h|(-y|--yes)]
+
+Options:
+    -y,--yes    : Updated without asking for confirmation
+    -h,--help   : Display help
+"
+
+yesOption=false
+helpOption=false
+
+function updateTshock() {
+    latestRelease=$(curl -sS -X GET https://api.github.com/repos/Pryaxis/TShock/releases/latest);
+    latestVersion=$(echo $latestRelease | jq -r '.tag_name')
+    actualVersion=$(cat /opt/tshock/tshock.version)
+    echo "TShock update: ${actualVersion} => ${latestVersion}"
+    update=true
+    if [[ "$actualVersion" == "$latestVersion" ]]; then
+        if $yesOption ; then
+            update=true
+        else
+            read -p "Target version is same actual. Do you want to continue update? (y/N) " -n 1 confirmation
+            case "${confirmation}" in
+                y|Y ) update=true;;
+                n|N ) update=false;;
+                *) update=false;;
+            esac
+            echo "" ;
+        fi
+    fi
+    if $update ; then
+        download_url=$(echo $latestRelease | jq -r '.assets[0].browser_download_url') && \
+        curl -L "${download_url}" -o "/tmp/tshock_${latestVersion}.zip" --progress-bar && \
+        unzip -o "/tmp/tshock_${latestVersion}.zip" -d /opt/tshock && \
+        rm "/tmp/tshock_${latestVersion}.zip" && \
+        echo "${latestVersion}" > ${TSHOCK_HOME}/tshock.version && \
+        echo "TShock version: ${latestVersion}"
+    else
+        echo "No version updated" ;
+    fi
+}
+
+while [ $# -ne 0 ]; do
+    case $1 in
+        "-y"|"--yes" ) shift
+            yesOption=true
+            ;;
+        "-h"|"--help" ) shift
+              if [ $# -ne 0 ]; then
+                  echo "Invalid number of arguments."
+                  exit 1
+              fi
+              helpOption=true
+              ;;
     esac
-    echo "" ;
-fi
-if $update ; then
-    download_url=$(echo $latestRelease | jq -r '.assets[0].browser_download_url') && \
-    curl -L "${download_url}" -o "/tmp/tshock_${latestVersion}.zip" --progress-bar && \
-    unzip -o "/tmp/tshock_${latestVersion}.zip" -d /opt/tshock && \
-    rm "/tmp/tshock_${latestVersion}.zip" && \
-    echo "${latestVersion}" > ${TSHOCK_HOME}/tshock.version && \
-    echo "TShock version: ${latestVersion}"
+done
+
+if $helpOption ; then
+    echo "$usage"
 else
-    echo "No version updated" ;
+    updateTshock
 fi
