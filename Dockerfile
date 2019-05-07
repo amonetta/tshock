@@ -3,7 +3,7 @@
 FROM mono:latest
 LABEL maintainer="Agustin I. monetta <agustin.monetta@gmail.com>"
 
-ARG TSHOCK_VERSION="v4.3.25"
+ARG TSHOCK_VERSION="v4.3.26"
 ENV TSHOCK_VERSION="${TSHOCK_VERSION}"
 ENV HOUSE_REGION_VERSION="1.2.2"
 ENV CLANS_VERSION="v1.0"
