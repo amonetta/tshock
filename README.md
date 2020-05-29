@@ -166,3 +166,22 @@ $ docker exec -it tshock nano /opt/tshock/tshock/sscconfig.json
 $ docker restart tshock
 ```
 
+## Contributions
+
+This project is 100% free to use and distribute. Also you are able to contribute 
+via Pull Request or submit your [suggestion](mailto:contact@amonetta.com.ar).
+
+In addition, you may contribute with a donation with any amount that you want to at this [link](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=YRYECY8NWY7KL&item_name=Help+to+dockerized+tShock+proyect&currency_code=USD&source=url):
+
+<p>
+<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
+<input type="hidden" name="cmd" value="_donations" />
+<input type="hidden" name="business" value="YRYECY8NWY7KL" />
+<input type="hidden" name="item_name" value="Help to dockerized tShock proyect" />
+<input type="hidden" name="currency_code" value="USD" />
+<input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button" />
+<img alt="" border="0" src="https://www.paypal.com/en_AR/i/scr/pixel.gif" width="1" height="1" />
+</form>
+</p>
+ 
+ ![Donation QR](danation_qr.png)
